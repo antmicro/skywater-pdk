@@ -124,6 +124,7 @@ exclude_patterns = [
     'code-of-conduct.rst',
     'rules/periphery-rules.rst',
     'rules/device-details/*/index.rst',
+    '**/cell-list.rst',
 ]
 
 # The name of the Pygments (syntax highlighting) style to use.
