@@ -31,7 +31,8 @@
 import docutils
 import os
 import re
-# import sys
+import sys
+import subprocess
 # sys.path.insert(0, os.path.abspath('.'))
 
 
@@ -401,6 +402,13 @@ def add_role(app, new_role_name):
     role = roles.CustomRole(new_role_name, roles.generic_custom_role, options, "")
     app.add_role(new_role_name, role)
 
+def build_lib_docs():
+    ''' builds rst cell lists and cell docs '''
+    script_dir = '../scripts/python-skywater-pdk/skywater_pdk'
+    script_dir = os.path.abspath(script_dir) 
+    subprocess.call(["python", "cell_readme_generate.py", "--all_libs"], cwd=script_dir)
+    subprocess.call(["python", "cell_list.py", "--all_libs"], cwd=script_dir)
+
 
 def setup(app):
     app.add_css_file('extra.css')
@@ -417,3 +425,6 @@ def setup(app):
     app.add_role('lib', lib_role)
     app.add_role('cell', cell_role)
     app.add_role('model', cell_role)
+
+    build_lib_docs()
+
