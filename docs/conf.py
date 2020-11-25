@@ -405,9 +405,11 @@ def add_role(app, new_role_name):
 def build_lib_docs():
     ''' builds rst cell lists and cell docs '''
     script_dir = '../scripts/python-skywater-pdk/skywater_pdk'
-    script_dir = os.path.abspath(script_dir) 
+    script_dir = os.path.abspath(script_dir)
+    cell_index_file = os.path.abspath('.') +'/contents/cell-index.rst'
     subprocess.call(["python", "cell_readme_generate.py", "--all_libs"], cwd=script_dir)
     subprocess.call(["python", "cell_list.py", "--all_libs"], cwd=script_dir)
+    subprocess.call(["python", "cell_cross_index.py", "--all_libs", "-o", cell_index_file], cwd=script_dir)
 
 
 def setup(app):
