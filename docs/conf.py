@@ -34,6 +34,8 @@ import re
 import sys
 import subprocess
 # sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('./_ext/skywater_pdk/cells'))
+sys.path.insert(0, os.path.abspath('./_ext/skywater_pdk/cells/generate'))
 
 
 # -- Project information -----------------------------------------------------
@@ -66,6 +68,8 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.todo',
     'sphinxcontrib_hdl_diagrams',
+    'cell_cross_index',
+    'generate_cell_readme',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -428,5 +432,5 @@ def setup(app):
     app.add_role('cell', cell_role)
     app.add_role('model', cell_role)
 
-    build_lib_docs()
+    #build_lib_docs()
 
