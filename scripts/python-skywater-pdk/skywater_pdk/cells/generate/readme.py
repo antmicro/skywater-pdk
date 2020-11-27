@@ -30,7 +30,6 @@ verbose = False
 
 readme_template ="""\
 {header}
-{headerUL}
 
 **{description}**
 
@@ -43,8 +42,7 @@ readme_template ="""\
 -  **Inputs**:  {inputs}
 -  **Outputs**: {outputs}
 
-Symbols
--------
+{subheader_sym}
 
 .. list-table:: 
 
@@ -52,14 +50,12 @@ Symbols
       -
       - .. figure:: {symbol2}
 
-Schematic
----------
+{subheader_sch}
 
 .. figure:: {schematic}
     :align: center
 
-GDSII Layouts
--------------
+{subheader_gds}
 
 """
 
@@ -80,12 +76,19 @@ def write_readme(cellpath, define_data):
         define_data - cell data from json [dic]
 
     '''
-    netlist_json = os.path.join(cellpath, define_data['file_prefix']+'.json')
-    assert os.path.exists(netlist_json), netlist_json
     outpath = os.path.join(cellpath, 'README.rst')
-
     prefix = define_data['file_prefix'] 
-    header = prefix
+    header = f':cell:`{prefix}`'
+    subheader_sym = header + ' symbols'
+    subheader_sch = header + ' schematic'
+    subheader_gds = header + ' GDSII layouts'
+
+    header += '\n' + '=' * len(header)
+    subheader_sym += '\n' + '-' * len(subheader_sym)
+    subheader_sch += '\n' + '-' * len(subheader_sch)
+    subheader_gds += '\n' + '-' * len(subheader_gds)
+
+
     symbol1 = prefix + '.symbol.svg'
     symbol2 = prefix + '.pp.symbol.svg'
     schematic = prefix + '.schematic.svg'
@@ -109,7 +112,9 @@ def write_readme(cellpath, define_data):
     with open(outpath, 'w') as f:
         f.write (readme_template.format (
             header = header,
-            headerUL = '=' * len(header),
+            subheader_sym = subheader_sym,
+            subheader_sch = subheader_sch,
+            subheader_gds = subheader_gds,
             description = define_data['description'].rstrip('.'),
             name = ':cell:`' + prefix +'`',
             deftype = define_data['type'],
@@ -174,7 +179,7 @@ class GenerateCellReadme(Directive):
             try:
                 process(d)
             except (AssertionError, FileNotFoundError, ChildProcessError) as ex:
-                print (f'GenerateCellReadme: Error: {type(ex).__name__}')
+                print (f'GenerateCellReadme: {type(ex).__name__}')
                 print (f'{ex.args}')
                 errors +=1
         print (f'GenerateCellReadme: {len(cell_dirs)} files processed, {errors} errors.')
