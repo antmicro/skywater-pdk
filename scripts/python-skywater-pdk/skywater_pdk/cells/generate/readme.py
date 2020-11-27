@@ -21,7 +21,12 @@ import pathlib
 import glob
 import subprocess
 import textwrap
+from docutils import nodes
+from docutils.parsers.rst import Directive
+from docutils.statemachine import ViewList
+from sphinx.util.nodes import nested_parse_with_titles
 
+verbose = False
 
 readme_template ="""\
 {header}
@@ -129,9 +134,9 @@ def process(cellpath):
     Args:
         cellpath - path to a cell [str of pathlib.Path]
     '''
-
-    print()
-    print(cellpath)
+    if verbose:
+        print()
+        print(cellpath)
     define_json = os.path.join(cellpath, 'definition.json')
     if not os.path.exists(define_json):
         print("No definition.json in", cellpath)
@@ -143,6 +148,49 @@ def process(cellpath):
 
     return
 
+# --- Sphinx extension wrapper ----------------
+
+class GenerateCellReadme(Directive):
+
+    required_arguments = 1
+    has_content = False
+
+    def run(self):
+        env = self.state.document.settings.env
+        dirname = env.docname.rpartition('/')[0]
+        arg = self.arguments[0]
+        arg = dirname + '/' + arg
+
+        print (f'GenerateCellReadme: generating files...')
+
+        path = pathlib.Path(arg).expanduser()
+        parts = path.parts[1:] if path.is_absolute() else path.parts
+        paths = pathlib.Path(path.root).glob(str(pathlib.Path("").joinpath(*parts)))
+        paths = list(paths)    
+        cell_dirs = [d.resolve() for d in paths if d.is_dir()]
+
+        errors = 0
+        for d in cell_dirs:
+            try:
+                process(d)
+            except (AssertionError, FileNotFoundError, ChildProcessError) as ex:
+                print (f'GenerateCellReadme: Error: {type(ex).__name__}')
+                print (f'{ex.args}')
+                errors +=1
+        print (f'GenerateCellReadme: {len(cell_dirs)} files processed, {errors} errors.')
+
+        paragraph_node = nodes.paragraph()
+        return [paragraph_node]
+
+def setup(app):
+    app.add_directive("generate_cell_readme", GenerateCellReadme)
+
+    return {
+        'version': '0.1',
+        'parallel_read_safe': True,
+           }
+
+# ----------------------------------------------      
 
 def main():
     ''' Generates README.rst for cell.'''
