@@ -201,33 +201,48 @@ def cells_in_libs (libpaths):
 
 # --- Sphinx extension wrapper ---
 
-class CellLibIndex(Directive):
+class CellCrossIndex(Directive):
+
+    required_arguments = 1
+    optional_arguments = 1
+    has_content = True
 
     def run(self):
         env = self.state.document.settings.env
         dirname = env.docname.rpartition('/')[0]
-        alllibpath = '../../../libraries/*/latest'
+        arg = self.arguments[0]
+        arg = dirname + '/' + arg
+        output = dirname + '/' + self.arguments[1] if len(self.arguments)>2 else None
 
-        path = pathlib.Path(alllibpath).expanduser()
+        path = pathlib.Path(arg).expanduser()
         parts = path.parts[1:] if path.is_absolute() else path.parts
         paths = pathlib.Path(path.root).glob(str(pathlib.Path("").joinpath(*parts)))
-    
+        paths = list(paths)    
+        paths = [d.resolve() for d in paths if d.is_dir()]
+
         cells_lib = cells_in_libs ( list(paths) )
-        celllink = 'libraries/{lib}/cells/{cell}/README'
+        celllink = self.arguments[0].replace('*','{lib}') + '/cells/{cell}/README'
         paragraph = generate_crosstable (cells_lib,celllink)
 
-        # parse rst string to docutils nodes
-        rst = ViewList()
-        for i,line in enumerate(paragraph.split('\n')):
-            rst.append(line, libname+"-cell-list.rst", i+1) 
-        node = nodes.section()
-        node.document = self.state.document
-        nested_parse_with_titles(self.state, rst, node)
-        return node.children
-
+        if output is None: #  dynamic output
+            # parse rst string to docutils nodes
+            rst = ViewList()
+            for i,line in enumerate(paragraph.split('\n')):
+                rst.append(line, "cell-index-tmp.rst", i+1) 
+            node = nodes.section()
+            node.document = self.state.document
+            nested_parse_with_titles(self.state, rst, node)
+            return node.children
+        else: # file output
+             if not output.endswith('.rst'):
+                output += '.rst'
+             with open(str(output),'w') as f:
+                f.write(paragraph)           
+             paragraph_node = nodes.paragraph()
+             return [paragraph_node]
 
 def setup(app):
-    app.add_directive("cell_lib_index", CellLibIndex)
+    app.add_directive("cross_index", CellCrossIndex)
 
     return {
         'version': '0.1',

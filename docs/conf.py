@@ -66,7 +66,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.todo',
     'sphinxcontrib_hdl_diagrams',
-    #'cell_cross_index',
+    'skywater_pdk.cells.cross_index',
     'skywater_pdk.cells.generate.readme',
 ]
 
